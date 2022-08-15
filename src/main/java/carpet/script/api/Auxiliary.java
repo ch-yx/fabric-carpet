@@ -281,6 +281,11 @@ public class Auxiliary {
 
         });
 
+        expression.addContextFunction("item_rarity", -1, (c, t, lv)->{
+            return StringValue.of(EntityValue.getItemStackFromValue(lv.get(0)).getRarity().toString());
+
+        });
+
         expression.addContextFunction("particle_box", -1, (c, t, lv) ->
         {
             CarpetContext cc = (CarpetContext)c;

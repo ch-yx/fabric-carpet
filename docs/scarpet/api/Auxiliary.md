@@ -275,6 +275,8 @@ Example usages:
  
  If the item is renamed, it will also be reflected in the results.
 
+### `item_rarity(item)`
+ Returns the rarity of the given item. may be one of `COMMON` `UNCOMMON` `RARE` `EPIC`.
 
 ### `display_title(players, type, text?, fadeInTicks?, stayTicks?, fadeOutTicks),`
 
