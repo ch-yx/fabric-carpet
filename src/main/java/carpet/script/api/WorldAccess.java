@@ -256,7 +256,72 @@ public class WorldAccess {
             {
                 throw new InternalExpressionException("Block requires at least one parameter");
             }
-            BlockValue retval = BlockArgument.findIn(cc, lv, 0, true).block;
+            BlockArgument locator = BlockArgument.findIn(cc, lv, 0, true);
+            BlockValue retval = locator.block;
+            
+            if (lv.size() > locator.offset)
+            {
+                BlockState blockState = retval.getBlockState();
+                CompoundTag data = null;
+                List<Value> args = new ArrayList<>();
+                for (int i = locator.offset, m = lv.size(); i < m; i++)
+                {
+                    args.add(lv.get(i));
+                }
+                if (args.get(0) instanceof ListValue)
+                {
+                    if (args.size() == 2)
+                    {
+                        Value dataValue = NBTSerializableValue.fromValue( args.get(1));
+                        if (dataValue instanceof NBTSerializableValue)
+                        {
+                            data = ((NBTSerializableValue) dataValue).getCompoundTag();
+                        }
+                    }
+                    args = ((ListValue) args.get(0)).getItems();
+                }
+                else if (args.get(0) instanceof MapValue)
+                {
+                    if (args.size() == 2)
+                    {
+                        Value dataValue = NBTSerializableValue.fromValue( args.get(1));
+                        if (dataValue instanceof NBTSerializableValue)
+                        {
+                            data = ((NBTSerializableValue) dataValue).getCompoundTag();
+                        }
+                    }
+                    Map<Value, Value> state = ((MapValue) args.get(0)).getMap();
+                    List<Value> mapargs = new ArrayList<>();
+                    state.forEach( (k, v) -> {mapargs.add(k); mapargs.add(v);});
+                    args = mapargs;
+                }
+                else
+                {
+                    if ((args.size() & 1) == 1)
+                    {
+                        Value dataValue = NBTSerializableValue.fromValue( args.get(args.size()-1));
+                        if (dataValue instanceof NBTSerializableValue)
+                        {
+                            data = ((NBTSerializableValue) dataValue).getCompoundTag();
+                        }
+                    }
+                }
+                StateDefinition<Block, BlockState> states = blockState.getBlock().getStateDefinition();
+                for (int i = 0; i < args.size()-1; i += 2)
+                {
+                    String paramString = args.get(i).getString();
+                    Property<?> property = states.getProperty(paramString);
+                    if (property == null)
+                        throw new InternalExpressionException("Property " + paramString + " doesn't apply to " + locator.block.getString());
+                    String paramValue = args.get(i + 1).getString();
+                    blockState = setProperty(property, paramString, paramValue, blockState);
+                }
+            
+            
+                if (data == null) data = retval.getData();
+                CompoundTag finalData = data;
+                return new BlockValue(blockState, null, null, finalData);
+            }
             // fixing block state and data
             retval.getBlockState();
             retval.getData();
