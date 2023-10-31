@@ -28,6 +28,7 @@
     "HugeFungusFeatureMixin",
     "PiglinBrute_getPlacementTypeMixin",
     "MinecraftServer_coreMixin",
+    "CrafterAccessMixin",
 
     "MinecraftServer_tickspeedMixin",
     "Level_tickMixin",
