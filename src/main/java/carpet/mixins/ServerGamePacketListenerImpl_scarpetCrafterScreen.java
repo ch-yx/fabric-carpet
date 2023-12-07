@@ -8,9 +8,10 @@ import net.minecraft.world.level.block.entity.CrafterBlockEntity;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Constant;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerImpl_scarpetCrafterScreen
@@ -19,12 +20,13 @@ public abstract class ServerGamePacketListenerImpl_scarpetCrafterScreen
     @Shadow
     public ServerPlayer player;
 
-    @Inject(method = "handleContainerSlotStateChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/CrafterMenu;getContainer()Lnet/minecraft/world/Container;"))
-
-    private void injected(ServerboundContainerSlotStateChangedPacket serverboundContainerSlotStateChangedPacket,CallbackInfo ci) {
-        CrafterMenu cm =(CrafterMenu)this.player.containerMenu;
-        if(!(cm.getContainer() instanceof CrafterBlockEntity)){
-            cm.setSlotState(serverboundContainerSlotStateChangedPacket.slotId(), serverboundContainerSlotStateChangedPacket.newState());
-        };
+    @WrapOperation(method = "handleContainerSlotStateChanged(Lnet/minecraft/network/protocol/game/ServerboundContainerSlotStateChangedPacket;)V", constant = @Constant(classValue = CrafterBlockEntity.class))
+    private boolean injected(Object container, Operation<Boolean> org){//, ServerboundContainerSlotStateChangedPacket serverboundContainerSlotStateChangedPacket){//,@Local(ordinal = 0) CrafterMenu cm) {
+        //System.out.println(cm ==(CrafterMenu)this.player.containerMenu);
+/*         CrafterMenu cm = (CrafterMenu)this.player.containerMenu;
+        if(!(org.call(container))){
+            cm.setSlotState(1,false);
+        }; */
+        return org.call(container);
     }
 }
