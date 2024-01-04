@@ -24,6 +24,7 @@ public abstract class AbstractContainerMenu_scarpetMixin implements AbstractCont
     @Shadow @Final private List<ContainerListener> containerListeners;
     @Shadow public abstract void sendAllDataToRemote();
     @Shadow @Final private List<DataSlot> dataSlots;
+    @Shadow boolean suppressRemoteUpdates;
 
     @Inject(method = "doClick", at = @At("HEAD"), cancellable = true)
     private void callSlotClickListener(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
@@ -74,5 +75,9 @@ public abstract class AbstractContainerMenu_scarpetMixin implements AbstractCont
     @Override
     public DataSlot getDataSlot(int index) {
         return this.dataSlots.get(index);
+    }
+
+    public boolean getSuppressRemoteUpdates() {
+        return suppressRemoteUpdates;
     }
 }

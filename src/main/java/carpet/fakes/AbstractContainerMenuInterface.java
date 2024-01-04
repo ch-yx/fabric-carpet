@@ -10,4 +10,5 @@ public interface AbstractContainerMenuInterface
     DataSlot getDataSlot(int index);
     boolean callButtonClickListener(int button, Player player);
     boolean callSelectRecipeListener(ServerPlayer player, RecipeHolder<?> recipe, boolean craftAll);
+    boolean getSuppressRemoteUpdates();
 }

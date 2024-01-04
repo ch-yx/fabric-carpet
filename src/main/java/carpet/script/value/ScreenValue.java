@@ -1,5 +1,6 @@
 package carpet.script.value;
 
+import carpet.fakes.AbstractContainerMenuInterface;
 import carpet.script.CarpetScriptHost;
 import carpet.script.CarpetScriptServer;
 import carpet.script.Context;
@@ -121,8 +122,11 @@ public class ScreenValue extends Value
         }
         public void setSlotState(int i, boolean bl) {
             suppress = true;
-            super.setSlotState(i, bl);
-            suppress = false;
+            try {
+                super.setSlotState(i, bl);
+            } finally {
+                suppress = false;
+            }
         }   //Do I really need to go to this point to make them similar?
     }
     protected interface ScarpetScreenHandlerFactory
@@ -403,10 +407,19 @@ public class ScreenValue extends Value
 
     public Value modifyProperty(String propertyName, List<Value> lv)
     {
+        boolean original;
+        if(original = ((AbstractContainerMenuInterface)screenHandler).getSuppressRemoteUpdates()){
+            this.screenHandler.resumeRemoteUpdates();
+        }
+        try {
         DataSlot property = getProperty(propertyName);
         int intValue = NumericValue.asNumber(lv.get(0)).getInt();
         property.set(intValue);
         this.screenHandler.broadcastChanges();
+        }finally{
+            if (original)
+                this.screenHandler.suppressRemoteUpdates();
+        }
         return Value.TRUE;
     }
 
