@@ -39,6 +39,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -81,6 +82,7 @@ import java.util.stream.Stream;
 
 import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.resources.ResourceLocation;
@@ -91,6 +93,7 @@ import net.minecraft.world.Clearable;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
@@ -261,6 +264,52 @@ public class WorldAccess
 
     public static void apply(Expression expression)
     {
+        expression.addContextFunction("__item_component_keys", -1, (c, t, lv) ->
+        {
+            ItemStack item;
+            CarpetContext cc = (CarpetContext) c;
+            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le){//for easy debugging
+                item=le.getItemBySlot(EquipmentSlot.MAINHAND);
+            }
+            else{
+                item=ValueConversions.getItemStackFromValue(lv.get(0), true, cc.registryAccess());
+            }
+
+            return ListValue.wrap(item.getComponents().keySet().stream()
+            .map(BuiltInRegistries.DATA_COMPONENT_TYPE::getKey)
+            .map(ValueConversions::of));
+        });
+
+
+        expression.addContextFunction("__item_component", -1, (c, t, lv) ->
+        {
+            ItemStack item;
+            CarpetContext cc = (CarpetContext) c;
+            
+            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le){//for easy debugging
+                item=le.getItemBySlot(EquipmentSlot.MAINHAND);
+            }
+            else{
+                item=ValueConversions.getItemStackFromValue(lv.get(0), true, cc.registryAccess());
+            }
+            
+
+            var lst= item.getComponents().keySet().stream().map((DataComponentType ck)->{
+                Value nk=ValueConversions.of(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ck));
+                if (ck.isTransient()){
+                    return nk;
+                }
+                if (item.get(ck) instanceof Number f){
+                    return ListValue.of(nk,NumericValue.of(f));
+                }
+                if (item.get(ck) instanceof Boolean b){
+                    return ListValue.of(nk,BooleanValue.of(b));
+                }
+                Tag res= (Tag) ck.codec().encodeStart(cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),item.get(ck)).result().orElse(null);
+                return (Value)ListValue.of(nk,NBTSerializableValue.of(res));
+            });
+            return ListValue.wrap(lst);
+        });
         expression.addContextFunction("block", -1, (c, t, lv) ->
         {
             CarpetContext cc = (CarpetContext) c;
