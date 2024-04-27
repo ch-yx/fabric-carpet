@@ -102,6 +102,7 @@
     "Connection_packetCounterMixin",
     "AbstractCauldronBlock_stackableSBoxesMixin",
     "ItemStack_stackableShulkerBoxesMixin",
+    "ItemStack_stackableShulkerBoxesEncodeMixin",
     "ItemEntityMixin",
     "TntBlock_noUpdateMixin",
     "Explosion_optimizedTntMixin",
