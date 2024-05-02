@@ -268,7 +268,7 @@ public class WorldAccess
         {
             ItemStack item;
             CarpetContext cc = (CarpetContext) c;
-            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le){//for easy debugging
+            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le){//for easy debugging, should be removed it later.
                 item=le.getItemBySlot(EquipmentSlot.MAINHAND);
             }
             else{
@@ -281,34 +281,38 @@ public class WorldAccess
         });
 
 
-        expression.addContextFunction("__item_component", -1, (c, t, lv) ->
-        {
+        expression.addContextFunction("__item_component_map", -1, (c, t, lv) -> {
             ItemStack item;
             CarpetContext cc = (CarpetContext) c;
-            
-            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le){//for easy debugging
-                item=le.getItemBySlot(EquipmentSlot.MAINHAND);
-            }
-            else{
-                item=ValueConversions.getItemStackFromValue(lv.get(0), true, cc.registryAccess());
-            }
-            
 
-            var lst= item.getComponents().keySet().stream().map((DataComponentType ck)->{
-                Value nk=ValueConversions.of(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ck));
-                if (ck.isTransient()){
-                    return nk;
-                }
-                if (item.get(ck) instanceof Number f){
-                    return ListValue.of(nk,NumericValue.of(f));
-                }
-                if (item.get(ck) instanceof Boolean b){
-                    return ListValue.of(nk,BooleanValue.of(b));
-                }
-                Tag res= (Tag) ck.codec().encodeStart(cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),item.get(ck)).result().orElse(null);
-                return (Value)ListValue.of(nk,NBTSerializableValue.of(res));
-            });
-            return ListValue.wrap(lst);
+            if (lv.get(0) instanceof EntityValue e && e.getEntity() instanceof LivingEntity le) {// for easy debugging, should be removed it later.
+                item = le.getItemBySlot(EquipmentSlot.MAINHAND);
+            } else {
+                item = ValueConversions.getItemStackFromValue(lv.get(0), true, cc.registryAccess());
+            }
+
+            var lst = item.getComponents().keySet().stream().filter(Predicate.not(DataComponentType::isTransient))
+                    .collect(Collectors.toMap(
+                            ck -> ValueConversions.of(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ck)),
+                            (DataComponentType ck) -> {
+                                var cvalue = item.get(ck);
+                                switch (cvalue) {
+                                    case Number n:
+                                        return  NumericValue.of(n);
+                                    case Boolean b:
+                                        return  BooleanValue.of(b);
+                                    default:
+                                        Tag res = (Tag) ck.codec()
+                                                .encodeStart(
+                                                        cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),
+                                                        cvalue)
+                                                .result().orElse(null);
+                                        return NBTSerializableValue.of(res);
+                                }
+
+                            }));
+
+            return MapValue.wrap(lst);
         });
         expression.addContextFunction("block", -1, (c, t, lv) ->
         {
