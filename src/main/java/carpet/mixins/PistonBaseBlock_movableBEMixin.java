@@ -3,8 +3,13 @@ package carpet.mixins;
 import carpet.CarpetSettings;
 import carpet.fakes.PistonBlockEntityInterface;
 import com.google.common.collect.Lists;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.mojang.serialization.JsonOps;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -16,6 +21,10 @@ import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,6 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Mixin(PistonBaseBlock.class)
 public abstract class PistonBaseBlock_movableBEMixin extends DirectionalBlock
@@ -48,6 +58,16 @@ public abstract class PistonBaseBlock_movableBEMixin extends DirectionalBlock
         }
     }
     
+
+    @Inject(method = "isPushable", cancellable = true, at = @At(value = "HEAD"))
+    private static void movableCMD(BlockState blockState_1, Level world_1, BlockPos blockPos_1,
+            Direction direction_1, boolean boolean_1, Direction direction_2, CallbackInfoReturnable<Boolean> cir, @Share("level") LocalRef<Level> levelarg, @Share("bpos") LocalRef<BlockPos> bposarg)
+    {
+        levelarg.set(world_1);
+        bposarg.set(blockPos_1);
+    }
+
+
     private static boolean isPushableBlockEntity(Block block)
     {
         //Making PISTON_EXTENSION (BlockPistonMoving) pushable would not work as its createNewTileEntity()-method returns null
@@ -55,9 +75,28 @@ public abstract class PistonBaseBlock_movableBEMixin extends DirectionalBlock
                        block != Blocks.END_GATEWAY && block != Blocks.END_PORTAL && block != Blocks.MOVING_PISTON  &&
                        block != Blocks.SPAWNER;
     }
+    private static boolean isPushableBlockEntity(BlockState block,LocalRef<Level> levelarg, LocalRef<BlockPos> bposarg)
+    {
+        //Making PISTON_EXTENSION (BlockPistonMoving) pushable would not work as its createNewTileEntity()-method returns null
+        String jsonstring=CarpetSettings.movableBlockEntitiesPredicate;
+        if ("".equals(jsonstring)) {
+            return isPushableBlockEntity(block.getBlock());
+        }
+        if (!(levelarg.get() instanceof ServerLevel s)) {
+            return false;
+        }
+        
+        if (block.getBlock() == Blocks.MOVING_PISTON)return false;
+
+        var p=net.minecraft.world.level.storage.loot.predicates.LootItemCondition.CODEC.decode(JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(jsonstring)).getOrThrow().getFirst();
+        var para = new LootParams.Builder(s).withParameter(LootContextParams.THIS_ENTITY, null).withParameter(LootContextParams.BLOCK_STATE, block).withParameter(LootContextParams.ORIGIN, bposarg.get().getCenter()).create(LootContextParamSets.BLOCK_USE);
+        var b = new net.minecraft.world.level.storage.loot.LootContext.Builder(para).create(Optional.empty());
+
+        return p.value().test(b);
+    }
     
     @Redirect(method = "isPushable", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;hasBlockEntity()Z"))
-    private static boolean ifHasBlockEntity(BlockState blockState)
+    private static boolean ifHasBlockEntity(BlockState blockState, @Share("level") LocalRef<Level> levelarg, @Share("bpos") LocalRef<BlockPos> bposarg)
     {
         if (!blockState.hasBlockEntity())
         {
@@ -65,7 +104,7 @@ public abstract class PistonBaseBlock_movableBEMixin extends DirectionalBlock
         }
         else
         {
-            return !(CarpetSettings.movableBlockEntities && isPushableBlockEntity(blockState.getBlock()));
+            return !(CarpetSettings.movableBlockEntities && isPushableBlockEntity(blockState,levelarg,bposarg));
         }
     }
 

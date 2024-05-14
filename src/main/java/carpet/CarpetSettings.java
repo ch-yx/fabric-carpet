@@ -383,6 +383,22 @@ public class CarpetSettings
             return this != FALSE;
         }
     }
+    private static class MovableBlockEntitiesPredicateValidator extends Validator<String> {
+
+        @Override
+        public String validate(CommandSourceStack source, CarpetRule<String> changingRule, String newValue, String userInput) {
+            var p = net.minecraft.world.level.storage.loot.predicates.LootItemCondition.CODEC.decode(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(userInput)).result().isPresent();
+            return p||"".equals(userInput) ? newValue:null;
+        }
+    }
+
+    @Rule(
+        desc = "Pistons can push block entities............?",
+        extra = { "...........?" },
+        category = {EXPERIMENTAL, FEATURE},
+        validate = MovableBlockEntitiesPredicateValidator.class
+    )
+    public static String movableBlockEntitiesPredicate = "";
 
     @Rule(
             desc = "Chains will stick to each other on the long ends",
