@@ -9,6 +9,9 @@ import com.mojang.serialization.JsonOps;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,9 +24,11 @@ import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -87,12 +92,13 @@ public abstract class PistonBaseBlock_movableBEMixin extends DirectionalBlock
         }
         
         if (block.getBlock() == Blocks.MOVING_PISTON)return false;
+        ResourceKey<LootItemCondition> resourceKey = ResourceKey.create(Registries.PREDICATE, new ResourceLocation(jsonstring));
 
-        var p=net.minecraft.world.level.storage.loot.predicates.LootItemCondition.CODEC.decode(JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(jsonstring)).getOrThrow().getFirst();
+        var x=levelarg.get().getServer().reloadableRegistries().lookup().get(Registries.PREDICATE, resourceKey).map(net.minecraft.core.Holder::value);
         var para = new LootParams.Builder(s).withParameter(LootContextParams.THIS_ENTITY, null).withParameter(LootContextParams.BLOCK_STATE, block).withParameter(LootContextParams.ORIGIN, bposarg.get().getCenter()).create(LootContextParamSets.BLOCK_USE);
         var b = new net.minecraft.world.level.storage.loot.LootContext.Builder(para).create(Optional.empty());
 
-        return p.value().test(b);
+        return x.get().test(b);
     }
     
     @Redirect(method = "isPushable", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;hasBlockEntity()Z"))

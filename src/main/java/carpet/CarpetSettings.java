@@ -387,7 +387,8 @@ public class CarpetSettings
 
         @Override
         public String validate(CommandSourceStack source, CarpetRule<String> changingRule, String newValue, String userInput) {
-            var p = net.minecraft.world.level.storage.loot.predicates.LootItemCondition.CODEC.decode(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(userInput)).result().isPresent();
+            var p = true;
+            //var p = net.minecraft.world.level.storage.loot.predicates.LootItemCondition.CODEC.decode(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(userInput)).result().isPresent();
             return p||"".equals(userInput) ? newValue:null;
         }
     }
