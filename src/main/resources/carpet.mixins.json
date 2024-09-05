@@ -3,6 +3,7 @@
   "package": "carpet.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "AllNPCRespawnMixin","Bugliulangshangren_Mixin",
     "BarrierBlock_updateSuppressionBlockMixin",
     "SpawnState_scarpetMixin",
     "MobCategory_spawnMixin",
