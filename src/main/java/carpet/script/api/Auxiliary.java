@@ -131,7 +131,7 @@ public class Auxiliary
             CarpetContext cc = (CarpetContext) c;
             if (lv.isEmpty())
             {
-                return ListValue.wrap(cc.registry(Registries.SOUND_EVENT).holders().map(soundEventReference -> ValueConversions.of(soundEventReference.key().location())));
+                return ListValue.wrap(cc.registry(Registries.SOUND_EVENT).listElements().map(soundEventReference -> ValueConversions.of(soundEventReference.key().location())));
             }
             String rawString = lv.get(0).getString();
             ResourceLocation soundName = InputValidator.identifierOf(rawString);
@@ -176,7 +176,7 @@ public class Auxiliary
             CarpetContext cc = (CarpetContext) c;
             if (lv.isEmpty())
             {
-                return ListValue.wrap(cc.registry(Registries.PARTICLE_TYPE).holders().map(particleTypeReference -> ValueConversions.of(particleTypeReference.key().location())));
+                return ListValue.wrap(cc.registry(Registries.PARTICLE_TYPE).listElements().map(particleTypeReference -> ValueConversions.of(particleTypeReference.key().location())));
             }
             MinecraftServer ms = cc.server();
             ServerLevel world = cc.level();
@@ -804,6 +804,8 @@ public class Auxiliary
 
         expression.addContextFunction("relight", -1, (c, t, lv) ->
         {
+            return Value.NULL;
+            /*
             CarpetContext cc = (CarpetContext) c;
             BlockArgument locator = BlockArgument.findIn(cc, lv, 0);
             BlockPos pos = locator.block.getPos();
@@ -811,6 +813,8 @@ public class Auxiliary
             Vanilla.ChunkMap_relightChunk(world.getChunkSource().chunkMap, new ChunkPos(pos));
             WorldTools.forceChunkUpdate(pos, world);
             return Value.TRUE;
+
+             */
         });
 
         // Should this be deprecated for system_info('source_dimension')?
@@ -1058,7 +1062,7 @@ public class Auxiliary
             ResourceLocation statName;
             category = InputValidator.identifierOf(lv.get(1).getString());
             statName = InputValidator.identifierOf(lv.get(2).getString());
-            StatType<?> type = cc.registry(Registries.STAT_TYPE).get(category);
+            StatType<?> type = cc.registry(Registries.STAT_TYPE).getValue(category);
             if (type == null)
             {
                 return Value.NULL;
@@ -1378,7 +1382,7 @@ public class Auxiliary
     @Nullable
     private static <T> Stat<T> getStat(StatType<T> type, ResourceLocation id)
     {
-        T key = type.getRegistry().get(id);
+        T key = type.getRegistry().getValue(id);
         if (key == null || !type.contains(key))
         {
             return null;

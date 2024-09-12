@@ -375,7 +375,7 @@ public class ShapeDispatcher
 
             key = 0;
             followEntity = -1;
-            shapeDimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(options.get("dim").getString()));
+            shapeDimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(options.get("dim").getString()));
             if (options.containsKey("follow"))
             {
                 followEntity = NumericValue.asNumber(options.getOrDefault("follow", optional.get("follow"))).getInt();
@@ -760,7 +760,7 @@ public class ShapeDispatcher
         {
             return p -> {
                 ParticleOptions particle;
-                Registry<Block> blocks = p.getServer().registryAccess().registryOrThrow(Registries.BLOCK);
+                Registry<Block> blocks = p.getServer().registryAccess().lookupOrThrow(Registries.BLOCK);
                 if (this.isitem)
                 {
                     if (Block.byItem(this.item.getItem()).defaultBlockState().isAir())

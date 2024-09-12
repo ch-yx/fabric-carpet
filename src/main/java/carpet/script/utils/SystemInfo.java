@@ -61,9 +61,9 @@ public class SystemInfo
         put("world_dimensions", c -> ListValue.wrap(c.server().levelKeys().stream().map(k -> ValueConversions.of(k.location()))));
         put("world_spawn_point", c -> ValueConversions.of(c.server().overworld().getLevelData().getSpawnPos()));
 
-        put("world_bottom", c -> new NumericValue(c.level().getMinBuildHeight()));
+        put("world_bottom", c -> new NumericValue(c.level().getMinY()));
 
-        put("world_top", c -> new NumericValue(c.level().getMaxBuildHeight()));
+        put("world_top", c -> new NumericValue(c.level().getMaxY()));
 
         put("world_center", c -> {
             WorldBorder worldBorder = c.level().getWorldBorder();
@@ -84,16 +84,12 @@ public class SystemInfo
         put("game_view_distance", c -> new NumericValue(c.server().getPlayerList().getViewDistance()));
         put("game_mod_name", c -> StringValue.of(c.server().getServerModName()));
         put("game_version", c -> StringValue.of(c.server().getServerVersion()));
-        put("game_target", c -> StringValue.of(Vanilla.MinecraftServer_getReleaseTarget(c.server())));
+        put("game_target", c -> StringValue.of(String.format("1.%d.%d",
+                Vanilla.MinecraftServer_getReleaseTarget(c.server())[0],
+                Vanilla.MinecraftServer_getReleaseTarget(c.server())[1])));
         put("game_protocol", c -> NumericValue.of(SharedConstants.getProtocolVersion()));
-        put("game_major_target", c -> {
-            String[] vers = Vanilla.MinecraftServer_getReleaseTarget(c.server()).split("\\.");
-            return NumericValue.of((vers.length > 1) ? Integer.parseInt(vers[1]) : 0);
-        });
-        put("game_minor_target", c -> {
-            String[] vers = Vanilla.MinecraftServer_getReleaseTarget(c.server()).split("\\.");
-            return NumericValue.of((vers.length > 2) ? Integer.parseInt(vers[2]) : 0);
-        });
+        put("game_major_target", c -> NumericValue.of(Vanilla.MinecraftServer_getReleaseTarget(c.server())[0]));
+        put("game_minor_target", c -> NumericValue.of(Vanilla.MinecraftServer_getReleaseTarget(c.server())[1]));
         put("game_stable", c -> BooleanValue.of(SharedConstants.getCurrentVersion().isStable()));
         put("game_data_version", c -> NumericValue.of(SharedConstants.getCurrentVersion().getDataVersion().getVersion()));
         put("game_pack_version", c -> NumericValue.of(SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA)));
@@ -169,7 +165,7 @@ public class SystemInfo
         put("world_gamerules", c -> {
             Map<Value, Value> rules = new HashMap<>();
             GameRules gameRules = c.level().getGameRules();
-            GameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor()
+            gameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor()
             {
                 @Override
                 public <T extends GameRules.Value<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type)

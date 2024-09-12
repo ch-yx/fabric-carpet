@@ -61,8 +61,8 @@ public abstract class ThreadedLevelLightEngine_scarpetChunkCreationMixin extends
 
         this.addTask(pos.x, pos.z, () -> 0, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> {
                 super.propagateLightSources(pos);
-                int minY = chunk.getMinBuildHeight();
-                int maxY = chunk.getMaxBuildHeight();
+                int minY = chunk.getMinY();
+                int maxY = chunk.getMaxY();
                 int minX = pos.getMinBlockX();
                 int minZ = pos.getMinBlockZ();
                 BlockPos.MutableBlockPos poss = new BlockPos.MutableBlockPos();
@@ -88,7 +88,7 @@ public abstract class ThreadedLevelLightEngine_scarpetChunkCreationMixin extends
         return CompletableFuture.runAsync(
             Util.name(() -> {
                     chunk.setLightCorrect(true);
-                    ((ThreadedAnvilChunkStorageInterface) this.chunkMap).releaseRelightTicket(pos);
+                    //((ThreadedAnvilChunkStorageInterface) this.chunkMap).releaseRelightTicket(pos);
                 },
                 () -> "Release relight ticket " + pos
             ),
