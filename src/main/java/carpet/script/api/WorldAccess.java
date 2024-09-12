@@ -292,25 +292,21 @@ public class WorldAccess
             } else {
                 item = ValueConversions.getItemStackFromValue(lv.get(0), true, cc.registryAccess());
             }
-
-            var lst = item.getComponents().keySet().stream().filter(Predicate.not(DataComponentType::isTransient))
+            Stream<DataComponentType<Object>> stream = (Stream<DataComponentType<Object>>)(Object)item.getComponents().keySet().stream();
+            Map<Value, Value> lst = stream.filter(Predicate.not(DataComponentType::isTransient))
                     .collect(Collectors.toMap(
                             ck -> ValueConversions.of(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ck)),
-                            (DataComponentType ck) -> {
+                            ck -> {
                                 var cvalue = item.get(ck);
-                                switch (cvalue) {
-                                    case Number n:
-                                        return  NumericValue.of(n);
-                                    case Boolean b:
-                                        return  BooleanValue.of(b);
-                                    default:
-                                        Tag res = (Tag) ck.codec()
-                                                .encodeStart(
-                                                        cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),
-                                                        cvalue)
-                                                .result().orElse(null);
-                                        return NBTSerializableValue.of(res);
-                                }
+                                return switch (cvalue) {
+                                    case Number n -> NumericValue.of(n);
+                                    case Boolean b -> BooleanValue.of(b);
+                                    default -> NBTSerializableValue.of(ck.codec()
+                                            .encodeStart(
+                                                    cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),
+                                                    cvalue)
+                                            .result().orElse(null));
+                                };
 
                             }));
 
