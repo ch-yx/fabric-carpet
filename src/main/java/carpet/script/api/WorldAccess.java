@@ -20,6 +20,7 @@ import carpet.script.utils.WorldTools;
 import carpet.script.value.BlockValue;
 import carpet.script.value.BooleanValue;
 import carpet.script.value.EntityValue;
+import carpet.script.value.FormattedTextValue;
 import carpet.script.value.ListValue;
 import carpet.script.value.MapValue;
 import carpet.script.value.NBTSerializableValue;
@@ -44,6 +45,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.DistanceManager;
 import net.minecraft.server.level.ServerLevel;
@@ -301,6 +303,7 @@ public class WorldAccess
                                 return switch (cvalue) {
                                     case Number n -> NumericValue.of(n);
                                     case Boolean b -> BooleanValue.of(b);
+                                    case Component ft -> FormattedTextValue.of(ft);
                                     default -> NBTSerializableValue.of(ck.codec()
                                             .encodeStart(
                                                     cc.registryAccess().createSerializationContext(NbtOps.INSTANCE),
