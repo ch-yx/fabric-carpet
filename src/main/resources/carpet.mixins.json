@@ -188,6 +188,7 @@
 
   ],
   "client": [
+    "BundleMixin","BundleMixin2",
     "Minecraft_tickMixin",
     "MinecraftMixin",
     "Gui_tablistMixin",
