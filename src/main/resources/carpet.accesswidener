@@ -17,3 +17,5 @@ accessible method net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluato
 accessible method net/minecraft/world/level/block/entity/SkullBlockEntity fetchGameProfile (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 
 accessible field net/minecraft/world/level/block/state/BlockBehaviour UPDATE_SHAPE_ORDER [Lnet/minecraft/core/Direction;
+
+mutable field net/minecraft/server/dialog/action/CommandTemplate MAP_CODEC Lcom/mojang/serialization/MapCodec;
