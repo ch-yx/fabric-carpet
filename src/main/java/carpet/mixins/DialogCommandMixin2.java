@@ -7,10 +7,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.dialog.action.ActionTypes;
-import net.minecraft.server.dialog.action.CommandTemplate;
-import net.minecraft.server.dialog.action.CustomAll;
-import net.minecraft.server.dialog.action.ParsedTemplate;
+import net.minecraft.server.dialog.action.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -23,6 +20,7 @@ public class DialogCommandMixin2 {
 
                 var t = x.additions().get().read("temp",ParsedTemplate.CODEC);
                 ParsedTemplate parsedTemplate = t.get();
+
                 return parsedTemplate;}))
                         .apply(instance, (ParsedTemplate x)->{
                             var c=new CompoundTag();
